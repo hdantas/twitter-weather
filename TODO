@@ -1,0 +1,14 @@
+Mapping info
+
+	+ look for other sources of data for cities in NL
+	+ process data/kml.php through xQuery to contain only the city name and the coordinates, one per line, tab separated
+	
+Pig
+	+ implement the circle idea based on the coordinates file
+	+ group each tweet according to the closest city
+		- filter out people with less than two tweets
+		- for each tweet compute the distances to all cities
+		- select the closest city and assign a variable with this association
+		- group by this association
+		- filter out people with less than two tweets from different boxes		
+		
