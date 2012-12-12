@@ -1,7 +1,7 @@
--- pw.println(count+ ","+ t.user.screen_name + "," + t.text + "," +t.user.location + "," + t.geo + "," +t.coordinates);
+-- dont forget to preprocess the twitter dumps to delete any \n or \t that may give problems later
 
 -- Loads
-file = LOAD 'sample.txt' USING PigStorage('\t') AS (count:int,userID:chararray,tweet:chararray,place:chararray,gps1:chararray,gps2:chararray);
+file = LOAD 'sample.txt' USING PigStorage('\t') AS (count:int,userID:int,userName:chararray,messageID:int,date:chararray,gps:chararray,source:cahararray,tweet:chararray);
 
 -- Processing
 tweets = FOREACH file GENERATE count, userID;

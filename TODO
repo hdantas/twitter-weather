@@ -1,14 +1,19 @@
-Mapping info
-
-	+ look for other sources of data for cities in NL
-	+ process data/kml.php through xQuery to contain only the city name and the coordinates, one per line, tab separated
-	
 Pig
-	+ implement the circle idea based on the coordinates file
-	+ group each tweet according to the closest city
-		- filter out people with less than two tweets
-		- for each tweet compute the distances to all cities
-		- select the closest city and assign a variable with this association
-		- group by this association
-		- filter out people with less than two tweets from different boxes		
+	1 + implement the quad-tree idea
+		1a - make a file with all the limits
+		1b - implement in Pig
+	2 + make a list with all existing routes between every pair of blocks
+	3 + determine the 30 most popular routes over 5 km.
+	4 + look at every route individually
+	5 + relate routes with weather
+		5a - look at source weather (3 conditions)
+		5b - look at destination weather (3 conditions)
+		5c - look at delta (destination-source) weather (3 conditions)
+	6 + find result
+		6a - most influence on travel (source, destination or delta)
+		6b - weather conditions influence
+
+
 		
+By thursday -> 1 through 4
+By sunday -> 1 through 6
