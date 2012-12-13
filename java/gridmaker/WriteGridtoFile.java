@@ -1,5 +1,5 @@
 import java.io.*;
-class FileWrite 
+class mapToGrid
 {
 	static double x_min = 0; //long_min
 	static double x_max = 0; //long_max
