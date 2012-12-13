@@ -1,4 +1,5 @@
 import java.io.*;
+
 public class AssignToBlock {
 
 	public static void main(String args[]) {
@@ -13,17 +14,26 @@ public class AssignToBlock {
 	// 	}
 	// }
 
-		GPSPoint point0 = new GPSPoint(43.0, 17.0, 0);
-		GPSPoint point1 = new GPSPoint(43.0, 17.0, 1, "D");
-		GPSPoint point2 = new GPSPoint(43.0, 17.0, 2, "DA");
-		GPSPoint point3 = new GPSPoint(43.0, 17.0, 3, "DD");
-		GPSPoint point4 = new GPSPoint(43.0, 17.0, 1, "DA");
+		String input = "12.34,56.78";
+		String delims = "[,]";	
+		String[] tokens = input.split(delims);
+		tokens[0] = tokens[0].trim();
+		tokens[1] = tokens[1].trim();
 
-		printPoint("point0",point0);
-		printPoint("point1",point1);
-		printPoint("point2",point2);
-		printPoint("point3",point3);
-		printPoint("point4",point4);
+		System.out.println("output:" + tokens[0] + "\n" + tokens[1]);
+		return;
+
+		// GPSPoint point0 = new GPSPoint(43.0, 17.0, 0);
+		// GPSPoint point1 = new GPSPoint(43.0, 17.0, 1, "D");
+		// GPSPoint point2 = new GPSPoint(43.0, 17.0, 2, "DA");
+		// GPSPoint point3 = new GPSPoint(43.0, 17.0, 3, "DD");
+		// GPSPoint point4 = new GPSPoint(43.0, 17.0, 1, "DA");
+
+		// printPoint("point0",point0);
+		// printPoint("point1",point1);
+		// printPoint("point2",point2);
+		// printPoint("point3",point3);
+		// printPoint("point4",point4);
 
 		//writetofile(result,"out.txt");
 	}

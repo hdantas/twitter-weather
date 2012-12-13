@@ -1,9 +1,10 @@
 Pig
-	1 + implement the quad-tree idea
-		1a - make a file with all the limits
-		1b - implement in Pig
+	//1 + implement the quad-tree idea
+		//1a - make a file with all the limits
+		//1b - implement in Pig
+	1.5 + create file to preprocess/clean the incoming tweets
 	2 + make a list with all existing routes between every pair of blocks
-	3 + determine the 30 most popular routes over 5 km.
+	3 + determine the 30 most popular routes
 	4 + look at every route individually
 	5 + relate routes with weather
 		5a - look at source weather (3 conditions)
