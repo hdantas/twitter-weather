@@ -12,26 +12,18 @@ public class AssignToBlockPig extends EvalFunc<String>{
 		String y_str = (String)input.get(0); //latitude -> y
 		String x_str = (String)input.get(1); //longitude -> x
 
-		String level_str = null;
 		String parentCode = null;
 		
-		if (input.size() == 4) { 
-			level_str = (String)input.get(2);
-			parentCode = (String)input.get(3);
+		if (input.size() == 3) { 
+			parentCode = (String)input.get(2);
 		}
 
 		Double x_double = 0.0;
 		Double y_double = 0.0;
-		int level = 0;
 
-		
-		System.err.format("%n%s%n%n",input);
-		
 		try {	
 			x_double = Double.parseDouble(x_str);
 			y_double = Double.parseDouble(y_str);
-			if (level_str != null)
-				level = Integer.parseInt(level_str);
 		} catch (NumberFormatException e) {
 				System.err.format("%nError! Failed to convert parsed coordinates to doubles%ninput tuple:%s%n%n",input);
 		}  catch (NullPointerException e) {
@@ -40,24 +32,15 @@ public class AssignToBlockPig extends EvalFunc<String>{
 
 		String result = "";
 
-		// GPSPoint point0 = new GPSPoint(x, y, <level>, <parentCode>);
+		// GPSPoint point0 = new GPSPoint(x, y, <parentCode>);
 		if (parentCode == null) {
 			GPSPoint point = new GPSPoint(x_double, y_double);
-			result = "x:" + point.getXcoordinate() + "\ty:" + point.getYcoordinate() + "\tnew block:" + point.findMyNewBlock() + '\n';			
+			// result = "x:" + point.getXcoordinate() + "\ty:" + point.getYcoordinate() + "\tnew block:" + point.findMyNewBlock() + '\n';
+			result = point.findMyNewBlock();
 		} else {
-			GPSPoint point = new GPSPoint(x_double, y_double,level,parentCode);
-			result = "x:" + point.getXcoordinate() + "\ty:" + point.getYcoordinate() + "\tparentCode:" + point.getParentCode() + "\tnew block:" + point.findMyNewBlock() + '\n';
-			Grid parent = point.getParent();
-			String blockCode = "";		
-			if (parent.getChildren('A').belongsToGrid(x_double,y_double))
-				blockCode += "A";
-			if (parent.getChildren('B').belongsToGrid(x_double,y_double))
-				blockCode += "B";
-			if (parent.getChildren('C').belongsToGrid(x_double,y_double))
-				blockCode += "C";
-			if (parent.getChildren('D').belongsToGrid(x_double,y_double))
-				blockCode += "D";
-			System.err.format("%nblockCode: %s%n%n", blockCode);
+			GPSPoint point = new GPSPoint(x_double, y_double,parentCode);
+			// result = "x:" + point.getXcoordinate() + "\ty:" + point.getYcoordinate() + "\tparentCode:" + point.getParentCode() + "\tnew block:" + point.findMyNewBlock() + '\n';
+			result = point.findMyNewBlock();
 		}
 
 		return result;
@@ -68,7 +51,6 @@ class GPSPoint {
 
 	private double x_coordinate;
 	private double y_coordinate;
-	private int level;
 	private String parentCode;
 	private Grid parent;
 	
@@ -84,48 +66,21 @@ class GPSPoint {
 	// private static final double Y_MAX = 30.0; //lat_max
 
 	public GPSPoint (double x_coordinate, double y_coordinate) {
-		constructorHelper(x_coordinate, y_coordinate, 0, "");
+		constructorHelper(x_coordinate, y_coordinate, "");
 	}
 
-	public GPSPoint (double x_coordinate, double y_coordinate, int level) {
-		if (level == 0)
-			constructorHelper(x_coordinate, y_coordinate, level, "");
-		else
-			System.err.format("%nError! Level is 0 so parentCode is ignored.%nx_coordinate:%f, y_coordinate:%f, level:%d%n%n",
-				x_coordinate, y_coordinate, level);
+	public GPSPoint (double x_coordinate, double y_coordinate, String parentCode) {
+		constructorHelper(x_coordinate, y_coordinate, parentCode);
 	}
 
-	public GPSPoint (double x_coordinate, double y_coordinate, int level, String parentCode) {
-		constructorHelper(x_coordinate, y_coordinate, level, parentCode);
-	}
-
-	private void constructorHelper(double x_coordinate, double y_coordinate, int level, String parentCode) {
-		if ((level == 0) && (parentCode.length() != 0))
-			System.err.format("%nError! Level is 0 so parentCode is ignored.%nx_coordinate:%f, y_coordinate:%f, level:%d, parentCode:%s%n%n",
-				x_coordinate, y_coordinate, level, parentCode);
+	private void constructorHelper(double x_coordinate, double y_coordinate, String parentCode) {
 		
 		this.x_coordinate = x_coordinate;
 		this.y_coordinate = y_coordinate;
-		this.level = level;
 		this.parentCode = parentCode;
 
-		if (level > parentCode.length()) {
-			this.level = parentCode.length();
-			this.parentCode = parentCode;
-			System.err.format("%nWarning! Level and parentCode mismatch. Advertised level is HIGHER than the length of the actual code." +
-				"%nx_coordinate:%f, y_coordinate:%f, level:%d, parentCode:%s%n%n",
-				x_coordinate, y_coordinate, level, parentCode);
-		}
-		else if (level < parentCode.length()) {
-			this.level = level;
-			this.parentCode = parentCode.substring(0,level);
-			System.err.format("%nWarning! Level and parentCode mismatch. Advertised level is LOWER than the length of the actual code." +
-				"%nx_coordinate:%f, y_coordinate:%f, level:%d, parentCode:%s%n%n",
-				x_coordinate, y_coordinate, level, parentCode);
-		}
-		
 		this.parent = new Grid(X_MIN,X_MAX,Y_MIN,Y_MAX);	
-		for (int i=0; i<this.level; i++) {
+		for (int i=0; i<this.parentCode.length(); i++) {
 			this.parent = this.parent.getChildren(this.parentCode.charAt(i));
 		}
 	}
@@ -136,10 +91,6 @@ class GPSPoint {
 
 	public double getYcoordinate() {
 		return y_coordinate;
-	}
-
-	public int getLevel() {
-		return level;
 	}
 
 	public String getParentCode() {
@@ -163,8 +114,8 @@ class GPSPoint {
 		else {
 			blockCode = "X";
 			System.err.format("%nError! This point did not find a valid children! Check if parent is correct." +
-				"%nx_coordinate:%f, y_coordinate:%f, level:%d, parentCode:%s%n%n",
-				x_coordinate, y_coordinate, level, parentCode);
+				"%nx_coordinate:%f, y_coordinate:%f, parentCode:%s%n%n",
+				x_coordinate, y_coordinate, parentCode);
 		}
 
 		if (parentCode != null)

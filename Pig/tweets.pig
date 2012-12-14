@@ -1,17 +1,44 @@
 -- dont forget to preprocess the twitter dumps to delete any \n or \t that may give problems later
 
 REGISTER bin/masti4.jar;
---REGISTER /home/nuno/Downloads/pig-0.10.0/contrib/piggybank/java/piggybank.jar;
 
 DEFINE AssignToBlockPig masti4.AssignToBlockPig;
-DEFINE getTimeStamp masti4.getTimeStamp;
+DEFINE getTimeStampPig masti4.getTimeStampPig;
+
+DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweets {
+
+	tweets = FOREACH $notdone_tweets GENERATE count, gps_lat, gps_long, AssignToBlockPig(gps_lat,gps_long,block) AS block;
+	
+	grouped_tweets = group tweets BY block;
+	grids = FOREACH grouped_tweets GENERATE *, COUNT(tweets) AS count_tweets;
+	
+	incomplete = FILTER grids BY (count_tweets > 1); -- '1' should be replaced by the threshold
+	$incomplete_tweets = FOREACH incomplete GENERATE FLATTEN(tweets);
+	
+	complete = FILTER grids BY (count_tweets <= 1); -- '1' should be replaced by the threshold
+	$complete_tweets = FOREACH complete GENERATE FLATTEN(tweets);
+};
+
 
 -- Loads
-file = LOAD '../data/sample_geo_cleaned.txt' USING PigStorage('\t') AS (count:int,userID:int,userName:chararray,messageID:int,date:chararray,gps_lat:chararray,gps_long:chararray,source:chararray,tweet:chararray);
+file = LOAD '../data/tweets_small_geotag.txt' USING PigStorage('\t') AS (count:int,userID:int,userName:chararray,messageID:int,date:chararray,gps_lat:chararray,gps_long:chararray,source:chararray,tweet:chararray);
 
 -- Processing
-tweets_blocks = FOREACH file GENERATE count, AssignToBlockPig(gps_lat,gps_long), AssignToBlockPig(gps_lat,gps_long,'1','C');
+firstrun = FOREACH file GENERATE count, gps_lat, gps_long, '' AS block;
+notdone0,done0 = AssignGPSBlock(firstrun);
+finished0 = done0;
 
--- output_dir = CONCAT('../results/',(CONCAT(getTimeStamp(),'tweets_blocks'));
+notdone1,done1 = AssignGPSBlock(notdone0);
+finished1 = UNION done1,finished0;
 
-STORE tweets_blocks INTO '../results/tweets_blocks_gps'; --write the result on Disk
+notdone2,done2 = AssignGPSBlock(notdone1);
+finished2 = UNION done2,finished1;
+
+notdone3,done3 = AssignGPSBlock(notdone2);
+finished3 = UNION done3, finished2;
+
+notdone4,done4 = AssignGPSBlock(notdone3);
+finished4 = UNION done4, finished3;
+
+result = UNION notdone4, finished4;
+STORE result INTO '$output_dir'; --write the result on Disk. $output_dir is a command line argument
