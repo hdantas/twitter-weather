@@ -5,58 +5,98 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+
 import org.apache.pig.backend.executionengine.ExecException;
+import org.apache.pig.data.BagFactory;
 import org.apache.pig.data.DataBag;
+import org.apache.pig.data.DataType;
 import org.apache.pig.data.Tuple;
 import org.apache.pig.data.TupleFactory;
 import org.apache.pig.EvalFunc;
+import org.apache.pig.impl.logicalLayer.FrontendException;
+import org.apache.pig.impl.logicalLayer.schema.Schema;
+
 
 // Decided to do with an helper class instead of a loop because its more elegant and easier to add features later ;)
 
 // input -> (userID:int, {(count:int, userID:int, gps_lat:double, gps_long:double, gpsBlock:chararray), (...)})
 // output (one output tuple for each input tuple inside de bag) -> (userID:int, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceCount:int, destinationCount:int)
 
-public class ConvertGPStoFlows extends EvalFunc<String> {
-	public String exec(Tuple input) throws IOException {
+public class ConvertGPStoFlows extends EvalFunc<DataBag> {
+	public DataBag exec(Tuple input) throws IOException {
+
+		BagFactory bagFactory = BagFactory.getInstance();
+		DataBag outputBag = bagFactory.newDefaultBag();
 
 		int userID;
-		DataBag bag;
+		DataBag inputBag;
 		Iterator it;
-		long bagSize;
+		long inputBagSize;
+		
 		Tuple source;
 		Tuple destination;
-		List<Tuple> tuplesList = new ArrayList<Tuple>();
-		List<UserFlows> flowsList = new ArrayList<UserFlows>();
 
 		try {
 			userID = (int)input.get(0);
-			bag = (DataBag)input.get(1);
-			it = bag.iterator();
-			bagSize = bag.size();
+			inputBag = (DataBag)input.get(1);
+			it = inputBag.iterator();
+			inputBagSize = inputBag.size();
 			source = (Tuple)it.next();
 		} catch (ExecException ee) {
 			throw ee;
 		}
 		
 
-		for (int i = 1; i < bagSize; i++) {
+		for (int i = 1; i < inputBagSize; i++) {
 			destination = (Tuple)it.next();
 			UserFlows flow = new UserFlows(userID);
 			
 			flow.setSourceTuple(source);
 			flow.setDestinationTuple(destination);
-			tuplesList.add(flow.getOutputTuple());
-			flowsList.add(flow);
+			
+			Tuple outputTuple = flow.getOutputTuple();
+			if (outputTuple != null) 
+				outputBag.add(outputTuple);
 
 			source = destination;
 		}
 
-		if (tuplesList.size() > 0) { // TODO change to output ordered bag with all appropriate tuples inside
-			return tuplesList.get(0).toDelimitedString(",");
-			//return flowsList.get(0).getOutputString();
+		// TODO change to output ordered bag with all appropriate tuples inside
+		return outputBag;
+	}
+
+	// output (one output tuple for each input tuple inside de bag) -> 
+	//(userID:int, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceCount:int, destinationCount:int)
+
+	public Schema outputSchema(Schema input) {
+
+		List<Schema.FieldSchema> listTupleFields = new ArrayList<Schema.FieldSchema>();
+
+		Schema.FieldSchema userID = new Schema.FieldSchema("userID",DataType.INTEGER);
+		listTupleFields.add(userID);
+		Schema.FieldSchema sourceGPSBlock = new Schema.FieldSchema("sourceGPSBlock",DataType.CHARARRAY);
+		listTupleFields.add(sourceGPSBlock);
+		Schema.FieldSchema destinationGPSBlock = new Schema.FieldSchema("destinationGPSBlock",DataType.CHARARRAY);
+		listTupleFields.add(destinationGPSBlock);
+		Schema.FieldSchema sourceCount = new Schema.FieldSchema("sourceCount",DataType.INTEGER);
+		listTupleFields.add(sourceCount);
+		Schema.FieldSchema destinationCount = new Schema.FieldSchema("destinationCount",DataType.INTEGER);
+		listTupleFields.add(destinationCount);
+
+		Schema.FieldSchema tupleFs;
+		Schema.FieldSchema bagFs;
+
+		try {
+			Schema tupleSchema = new Schema(listTupleFields);
+			tupleFs = new Schema.FieldSchema("tuple_of_flowFields",tupleSchema,DataType.TUPLE);
+
+			Schema bagSchema = new Schema(tupleFs);
+			bagFs = new Schema.FieldSchema("bag_of_flowTuples",bagSchema,DataType.BAG);
+		} catch (FrontendException e) {
+			throw new RuntimeException("Unable to compute output schema.");
 		}
-		else
-			return "";
+
+		return new Schema(bagFs);
 	}
 }
 
@@ -108,13 +148,16 @@ class UserFlows {
 	public Tuple getOutputTuple() {
 		TupleFactory mTupleFactory = TupleFactory.getInstance();
 		Tuple outputTuple = mTupleFactory.newTuple();
-		
-		outputTuple.append(userID);
-		outputTuple.append(sourceGPSBlock);
-		outputTuple.append(destinationGPSBlock);
-		outputTuple.append(sourceCount);
-		outputTuple.append(destinationCount);
-		return outputTuple;
+		if(!sourceGPSBlock.equals(destinationGPSBlock)) {
+			outputTuple.append(userID);
+			outputTuple.append(sourceGPSBlock);
+			outputTuple.append(destinationGPSBlock);
+			outputTuple.append(sourceCount);
+			outputTuple.append(destinationCount);
+			return outputTuple;
+		}
+		else //to avoid counting flows inside the same block
+			return null;
 	}
 
 	// FOR TESTING PURPOSES ONLY

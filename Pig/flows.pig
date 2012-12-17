@@ -10,11 +10,17 @@ file = LOAD '../data/data_with_blocks.txt' USING PigStorage('\t') AS (count:int,
 grouped_gpsblocks = GROUP file BY userID;
 
 flows = FOREACH grouped_gpsblocks GENERATE ConvertGPStoFlows(*);
--- grouped_flows = GROUP flows BY (source, destination);
--- ordered_flows = ORDER grouped_flows BY COUNT(*) DESC;
--- popular_flows = LIMIT ordered_flows 30;
+result = flows;
 
--- result = popular_flows;
+--FOREACH flows GENERATE bag_of_flowTuples.(userID, sourceCount,destinationCount);
+flattened_flows = FOREACH flows GENERATE FLATTEN(bag_of_flowTuples);
+
+grouped_flows = GROUP flattened_flows BY (sourceGPSBlock, destinationGPSBlock);
+count_grouped_flows = FOREACH grouped_flows GENERATE COUNT(flattened_flows) AS count, *;
+ordered_flows = ORDER count_grouped_flows BY count DESC;
+popular_flows = LIMIT ordered_flows 30;
+result = popular_flows;
+
 
 STORE result INTO '$output_dir'; --write the result on Disk. $output_dir is a command line argument
 
