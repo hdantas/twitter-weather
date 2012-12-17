@@ -9,8 +9,6 @@ public class AssignToBlockPig extends EvalFunc<String>{
 
 	public String exec(Tuple input) throws IOException {
 
-		String y_str = (String)input.get(0); //latitude -> y
-		String x_str = (String)input.get(1); //longitude -> x
 
 		String parentCode = null;
 		
@@ -21,22 +19,27 @@ public class AssignToBlockPig extends EvalFunc<String>{
 		Double x_double = 0.0;
 		Double y_double = 0.0;
 
+		String result = "";
+		
 		try {	
-			x_double = Double.parseDouble(x_str);
-			y_double = Double.parseDouble(y_str);
+			y_double = (Double)input.get(0); //latitude -> y
+			x_double = (Double)input.get(1); //longitude -> x
 		} catch (NumberFormatException e) {
-				System.err.format("%nError! Failed to convert parsed coordinates to doubles%ninput tuple:%s%n%n",input);
+			System.err.format("%nError! Failed to convert parsed coordinates to doubles%ninput tuple:%s%n%n",input);
+			return result;
 		}  catch (NullPointerException e) {
 			System.err.format("%nError! At least one coordinate is empty.%nInput tuple:%s%n%n",input);
+			return result;
 		}
 
-		String result = "";
 
 		// GPSPoint point0 = new GPSPoint(x, y, <parentCode>);
 		if (parentCode == null) {
 			GPSPoint point = new GPSPoint(x_double, y_double);
 			// result = "x:" + point.getXcoordinate() + "\ty:" + point.getYcoordinate() + "\tnew block:" + point.findMyNewBlock() + '\n';
 			result = point.findMyNewBlock();
+		} else if (parentCode.contains("X")){
+			//dont do anything. It will return result = "";
 		} else {
 			GPSPoint point = new GPSPoint(x_double, y_double,parentCode);
 			// result = "x:" + point.getXcoordinate() + "\ty:" + point.getYcoordinate() + "\tparentCode:" + point.getParentCode() + "\tnew block:" + point.findMyNewBlock() + '\n';

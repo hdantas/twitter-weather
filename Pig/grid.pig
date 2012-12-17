@@ -7,7 +7,7 @@ DEFINE getTimeStampPig masti4.getTimeStampPig;
 
 DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweets {
 
-	tweets = FOREACH $notdone_tweets GENERATE count, gps_lat, gps_long, AssignToBlockPig(gps_lat,gps_long,block) AS block;
+	tweets = FOREACH $notdone_tweets GENERATE count, userID, gps_lat, gps_long, AssignToBlockPig(gps_lat,gps_long,block) AS block;
 	
 	grouped_tweets = group tweets BY block;
 	grids = FOREACH grouped_tweets GENERATE *, COUNT(tweets) AS count_tweets;
@@ -21,10 +21,12 @@ DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweet
 
 
 -- Loads
-file = LOAD '../data/tweets_small_geotag.txt' USING PigStorage('\t') AS (count:int,userID:int,userName:chararray,messageID:int,date:chararray,gps_lat:chararray,gps_long:chararray,source:chararray,tweet:chararray);
+file = LOAD '../data/tweets_small_geotag.txt' USING PigStorage('\t') AS (count:int,userID:int,userName:chararray,messageID:int,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray);
+
+clean_file = FILTER file BY (gps_lat != -1000) AND (gps_long != -1000);
 
 -- Processing
-firstrun = FOREACH file GENERATE count, gps_lat, gps_long, '' AS block;
+firstrun = FOREACH clean_file GENERATE count, userID, gps_lat, gps_long, '' AS block;
 notdone0,done0 = AssignGPSBlock(firstrun);
 finished0 = done0;
 
@@ -40,5 +42,7 @@ finished3 = UNION done3, finished2;
 notdone4,done4 = AssignGPSBlock(notdone3);
 finished4 = UNION done4, finished3;
 
-result = UNION notdone4, finished4;
+geotaged_tweets = UNION notdone4, finished4;
+result = geotaged_tweets;
+
 STORE result INTO '$output_dir'; --write the result on Disk. $output_dir is a command line argument
