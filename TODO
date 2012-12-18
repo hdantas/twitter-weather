@@ -10,7 +10,8 @@ Pig
 		2c -  make sure inputs and output are in ordered bags (and test this inside the UDF) (otherwise sort by count)
 		//2d - create output schema, so that later output tuple fields can be refered by name
 		//2e - edit pig script to group and count each flow (commented out in the flows.pig script)
-		2f - review all work done so far and ensure workigness with some sample data
+		2f - use time and other criterion to exclude some flows. 
+		2g - review all work done so far and ensure workingness with some sample data
 	3 + relate routes with weather
 		3a - look at source weather (3 conditions)
 		3b - look at destination weather (3 conditions)
