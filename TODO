@@ -7,7 +7,7 @@ Pig
 	2 + make a list with all existing routes between every pair of blocks
 		//2a - create basic UDF, outputing just 1 tuples
 		//2b - edit UDF, to output bags instead of just the first tuple.
-		2c -  make sure inputs and output are in ordered bags (and test this inside the UDF) (otherwise sort by count)
+		//2c -  make sure inputs and output are in ordered bags (and test this inside the UDF) (otherwise sort by count)
 		//2d - create output schema, so that later output tuple fields can be refered by name
 		//2e - edit pig script to group and count each flow (commented out in the flows.pig script)
 		2f - use time and other criterion to exclude some flows. 
@@ -19,7 +19,3 @@ Pig
 	4 + find result
 		4a - most influence on travel (source, destination or delta)
 		4b - weather conditions influence
-
-
-		
-1 -> 2 (27th December)

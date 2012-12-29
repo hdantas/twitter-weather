@@ -98,7 +98,7 @@ public class WriteGridtoFile
 			return out;
 		}
 		
-		return out.format("%f %f\t%f %f",y_min,y_max,x_min,x_max);
+		return out.format("%f\t%f\t%f\t%f",y_min,y_max,x_min,x_max);
 	}
 }
 

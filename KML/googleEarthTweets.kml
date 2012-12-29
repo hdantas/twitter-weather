@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+	<Document>
+
+<Folder><name>Tweets</name>
+<Placemark>
+	<name>0</name>
+	<Point>
+		<coordinates>4.61520308,51.78117459,0</coordinates>
+	</Point>
+</Placemark>
+<Placemark>
+	<name>1</name>
+	<Point>
+		<coordinates>6.7410964,52.6550862,0</coordinates>
+	</Point>
+</Placemark>
+<Placemark>
+	<name>2</name>
+	<Point>
+		<coordinates>4.91005438,52.8900795,0</coordinates>
+	</Point>
+</Placemark>
+<Placemark>
+	<name>3</name>
+	<Point>
+		<coordinates>4.41457,52.17191,0</coordinates>
+	</Point>
+</Placemark>
+<Placemark>
+	<name>4</name>
+	<Point>
+		<coordinates>6.281437,52.080811,0</coordinates>
+	</Point>
+</Placemark>
+<Placemark>
+	<name>5</name>
+	<Point>
+		<coordinates>6.281437,52.080811,0</coordinates>
+	</Point>
+</Placemark>
+</Folder>
+</Document></kml>
