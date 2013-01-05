@@ -4,15 +4,16 @@ DEFINE ConvertGPStoFlows masti4.ConvertGPStoFlows;
 
 
 -- Loads
-file = LOAD '../data/data_with_blocks.txt' USING PigStorage('\t') AS (count:int,userID:int, gps_lat:double,gps_long:double,gpsblock:chararray);
+-- file = LOAD '../data/data_with_blocks.txt' USING PigStorage('\t') AS (-- count:int,userID:int, gps_lat:double,gps_long:double,);
+
+file = LOAD '../data/data_with_blocks.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray);
 
 -- Processing
 grouped_gpsblocks = GROUP file BY userID;
 
 flows = FOREACH grouped_gpsblocks GENERATE ConvertGPStoFlows(*);
-result = flows;
 
---FOREACH flows GENERATE bag_of_flowTuples.(userID, sourceCount,destinationCount);
+-- FOREACH flows GENERATE bag_of_flowTuples.(userID, sourceCount,destinationCount);
 flattened_flows = FOREACH flows GENERATE FLATTEN(bag_of_flowTuples);
 
 grouped_flows = GROUP flattened_flows BY (sourceGPSBlock, destinationGPSBlock);
@@ -20,7 +21,6 @@ count_grouped_flows = FOREACH grouped_flows GENERATE COUNT(flattened_flows) AS c
 ordered_flows = ORDER count_grouped_flows BY count DESC;
 popular_flows = LIMIT ordered_flows 30;
 result = popular_flows;
-
 
 STORE result INTO '$output_dir'; --write the result on Disk. $output_dir is a command line argument
 

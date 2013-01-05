@@ -19,14 +19,12 @@ DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweet
 
 
 -- Loads
-file = LOAD '../data/complete.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray);
+file = LOAD '../data/grid_first_run.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,block:chararray);
 
-clean_file = FILTER file BY (gps_lat != -1000) AND (gps_long != -1000);
 
 -- Processing
 
-firstrun = FOREACH clean_file GENERATE *, '' AS block;
-notdone0,done0 = AssignGPSBlock(firstrun);
+notdone0,done0 = AssignGPSBlock(file);
 finished0 = done0;
 
 notdone1,done1 = AssignGPSBlock(notdone0);
@@ -40,18 +38,6 @@ finished3 = UNION done3,finished2;
 
 notdone4,done4 = AssignGPSBlock(notdone3);
 finished4 = UNION done4,finished3;
-
--- notdone5,done5 = AssignGPSBlock(notdone4);
--- finished5 = UNION done5,finished4;
--- 
--- notdone6,done6 = AssignGPSBlock(notdone5);
--- finished6 = UNION done6,finished5;
--- 
--- notdone7,done7 = AssignGPSBlock(notdone6);
--- finished7 = UNION done7, finished6;
--- 
--- notdone8,done8 = AssignGPSBlock(notdone7);
--- finished8 = UNION done8, finished7;
 
 result = UNION notdone4, done4;
 
