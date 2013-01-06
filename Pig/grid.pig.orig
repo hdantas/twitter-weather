@@ -1,5 +1,3 @@
--- dont forget to preprocess the twitter dumps to delete any \n or \t that may give problems later
-
 REGISTER bin/masti4.jar;
 
 DEFINE AssignToBlockPig masti4.AssignToBlockPig;
@@ -21,7 +19,11 @@ DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweet
 
 
 -- Loads
+<<<<<<< HEAD
 file = LOAD '../data/complete.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray);
+=======
+file = LOAD '../data/complete.txt' USING PigStorage('\t') AS (count:int,userID:int,userName:chararray,messageID:int,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray);
+>>>>>>> 76b6d57aa850febca06544b18a7503e10cc848d8
 
 clean_file = FILTER file BY (gps_lat != -1000) AND (gps_long != -1000);
 
@@ -32,7 +34,7 @@ notdone0,done0 = AssignGPSBlock(firstrun);
 finished0 = done0;
 
 notdone1,done1 = AssignGPSBlock(notdone0);
-finished1 = UNION done1,finished0;
+finished1 = UNION done1,done0;
 
 notdone2,done2 = AssignGPSBlock(notdone1);
 finished2 = UNION done2,finished1;

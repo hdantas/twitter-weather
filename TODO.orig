@@ -1,0 +1,34 @@
+TODO List
+	//1 + implement the quad-tree idea
+		//1a - make a file with all the limits
+		//1b - implement in Pig
+		//1c - define grid resolution based on a threshold x
+	//1.5 + create file to preprocess/clean the incoming tweets (remove tabs and newlines)
+	2 + make a list with all existing routes between every pair of blocks
+		//2a - create basic UDF, outputing just 1 tuples
+		//2b - edit UDF, to output bags instead of just the first tuple.
+		//2c -  make sure inputs and output are in ordered bags (and test this inside the UDF) (otherwise sort by count)
+		//2d - create output schema, so that later output tuple fields can be refered by name
+		//2e - edit pig script to group and count each flow (commented out in the flows.pig script)
+		2f - review all work done so far and ensure workingness with some sample data
+<<<<<<< HEAD
+		2g - make diagram of the code structure in paper and dia. For report and to help with the next steps.
+		2g - understand the distribution of tweets per grid with actual data
+		2h - understand the flows per grid with actual data
+		2i - from the previous step determine what filters should be used to exclude "false" movements
+		2j - display data in Google Earth/Maps
+=======
+		2g - run with actual data (understand the distribution of tweets per grid)
+		2h - from the previous step determine what filters should be used to exclude "false" movements
+		2i - display data in Google Earth/Maps
+>>>>>>> 76b6d57aa850febca06544b18a7503e10cc848d8
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	3 + relate routes with weather
+		3a - look at source weather (3 conditions)
+		3b - look at destination weather (3 conditions)
+		3c - look at delta (destination-source) weather (3 conditions)
+	4 + find result
+		4a - most influence on travel (source, destination or delta)
+		4b - weather conditions influence
