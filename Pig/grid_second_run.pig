@@ -7,7 +7,7 @@ DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweet
 
 	tweets = FOREACH $notdone_tweets GENERATE count .. tweet, AssignToBlockPig(gps_lat,gps_long,block) AS block;
 	
-	grouped_tweets = group tweets BY block;
+	grouped_tweets = GROUP tweets BY block;
 	grids = FOREACH grouped_tweets GENERATE *, COUNT(tweets) AS count_tweets;
 	
 	incomplete = FILTER grids BY (count_tweets > 100); -- '1' should be replaced by the threshold
@@ -21,25 +21,31 @@ DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweet
 -- Loads
 file = LOAD '../data/grid_first_run.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,block:chararray);
 
+tweets = FILTER file BY (block != 'X');
 
 -- Processing
+grouped_tweets = GROUP tweets BY block;
+grids = FOREACH grouped_tweets GENERATE *, COUNT(tweets) AS count_tweets;
 
-notdone0,done0 = AssignGPSBlock(file);
-finished0 = done0;
+incomplete = FILTER grids BY (count_tweets > 1); -- '1' should be replaced by the threshold
+notdone0 = FOREACH incomplete GENERATE FLATTEN(tweets);
+
+complete = FILTER grids BY (count_tweets <= 1); -- '1' should be replaced by the threshold
+done0 = FOREACH complete GENERATE FLATTEN(tweets);
+
+STORE done0 INTO '$output_dir/0';
 
 notdone1,done1 = AssignGPSBlock(notdone0);
-finished1 = UNION done1,done0;
+STORE done1 INTO '$output_dir/1';
 
 notdone2,done2 = AssignGPSBlock(notdone1);
-finished2 = UNION done2,finished1;
+STORE done2 INTO '$output_dir/2';
 
 notdone3,done3 = AssignGPSBlock(notdone2);
-finished3 = UNION done3,finished2;
+STORE done3 INTO '$output_dir/3';
 
 notdone4,done4 = AssignGPSBlock(notdone3);
-finished4 = UNION done4,finished3;
+STORE done4 INTO '$output_dir/4';
 
-result = UNION notdone4, done4;
-
-STORE result INTO '$output_dir'; --write the result on Disk. $output_dir is a command line argument
+STORE notdone4 INTO '$output_dir/5';
 

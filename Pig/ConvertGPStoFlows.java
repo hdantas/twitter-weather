@@ -20,7 +20,10 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 // Decided to do with an helper class instead of a loop because its more elegant and easier to add features later ;)
 
 // input -> (userID:int, {(count:int, userID:int, gps_lat:double, gps_long:double, gpsBlock:chararray), (...)})
-// output (one output tuple for each input tuple inside de bag) -> (userID:int, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceCount:int, destinationCount:int)
+// (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray);
+
+// output (one output tuple for each input tuple inside de bag) ->
+// (userID:long, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceDate:chararray, destinationDate:chararray, sourceMesssageID:long, destinationMesssageID:long)
 
 public class ConvertGPStoFlows extends EvalFunc<DataBag> {
 	public DataBag exec(Tuple input) throws IOException {

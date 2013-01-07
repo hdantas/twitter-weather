@@ -2,18 +2,14 @@ REGISTER bin/masti4.jar;
 
 DEFINE ConvertGPStoFlows masti4.ConvertGPStoFlows;
 
-
 -- Loads
--- file = LOAD '../data/data_with_blocks.txt' USING PigStorage('\t') AS (-- count:int,userID:int, gps_lat:double,gps_long:double,);
-
-file = LOAD '../data/data_with_blocks.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray);
+file = LOAD '../data/complete_grid.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray);
 
 -- Processing
 grouped_gpsblocks = GROUP file BY userID;
 
 flows = FOREACH grouped_gpsblocks GENERATE ConvertGPStoFlows(*);
 
--- FOREACH flows GENERATE bag_of_flowTuples.(userID, sourceCount,destinationCount);
 flattened_flows = FOREACH flows GENERATE FLATTEN(bag_of_flowTuples);
 
 grouped_flows = GROUP flattened_flows BY (sourceGPSBlock, destinationGPSBlock);
