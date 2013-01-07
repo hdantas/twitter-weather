@@ -25,7 +25,7 @@ public class Main {
 		
 	}
 	
-public  static int tab_index(String line){
+	public  static int tab_index(String line){
 		
 		int count=0;
 		int index=0;

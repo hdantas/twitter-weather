@@ -10,9 +10,9 @@ TODO List
 		//2c -  make sure inputs and output are in ordered bags (and test this inside the UDF) (otherwise sort by count)
 		//2d - create output schema, so that later output tuple fields can be refered by name
 		//2e - edit pig script to group and count each flow (commented out in the flows.pig script)
-		2f - review all work done so far and ensure workingness with some sample data
-		2g - make diagram of the code structure in paper and dia. For report and to help with the next steps.
-		2g - understand the distribution of tweets per grid with actual data
+		//2f - review all work done so far and ensure workingness with some sample data
+		//2g - make diagram of the code structure in paper and dia. For report and to help with the next steps.
+		//2g - understand the distribution of tweets per grid with actual data
 		2h - understand the flows per grid with actual data
 		2i - from the previous step determine what filters should be used to exclude "false" movements
 		2j - display data in Google Earth/Maps
