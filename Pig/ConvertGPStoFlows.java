@@ -19,72 +19,55 @@ import org.apache.pig.impl.logicalLayer.schema.Schema;
 
 // Decided to do with an helper class instead of a loop because its more elegant and easier to add features later ;)
 
-// input -> (userID:int, {(count:int, userID:int, gps_lat:double, gps_long:double, gpsBlock:chararray), (...)})
-// (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray);
+// input -> (userID:long, {(count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray), (...)})
 
-// output (one output tuple for each input tuple inside de bag) ->
+// output (one output tuple for each input tuple inside the bag) ->
 // (userID:long, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceDate:chararray, destinationDate:chararray, sourceMesssageID:long, destinationMesssageID:long)
 
 public class ConvertGPStoFlows extends EvalFunc<DataBag> {
+
 	public DataBag exec(Tuple input) throws IOException {
 
 		BagFactory bagFactory = BagFactory.getInstance();
 		DataBag outputBag = bagFactory.newDefaultBag();
 
-		int userID;
+		long userID;
 		DataBag inputBag;
-		Iterator it;
-		long inputBagSize;
-		
-		Tuple source;
-		Tuple destination;
 
 		try {
-			userID = (int)input.get(0);
+			userID = (long)input.get(0);
 			inputBag = (DataBag)input.get(1);
-			it = inputBag.iterator();
-			inputBagSize = inputBag.size();
-			source = (Tuple)it.next();
 		} catch (ExecException ee) {
 			throw ee;
 		}
 		
+		UserFlows flows = new UserFlows(userID,inputBag);
+		outputBag = flows.getOutputDataBag();
 
-		for (int i = 1; i < inputBagSize; i++) {
-			destination = (Tuple)it.next();
-			UserFlows flow = new UserFlows(userID);
-			
-			flow.setSourceTuple(source);
-			flow.setDestinationTuple(destination);
-			
-			Tuple outputTuple = flow.getOutputTuple();
-			if (outputTuple != null) 
-				outputBag.add(outputTuple);
-
-			source = destination;
-		}
-
-		// TODO change to output ordered bag with all appropriate tuples inside
 		return outputBag;
 	}
 
-	// output (one output tuple for each input tuple inside de bag) -> 
-	//(userID:int, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceCount:int, destinationCount:int)
+// output (one output tuple for each input tuple inside the bag) ->
+// (userID:long, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceDate:chararray, destinationDate:chararray, sourceMesssageID:long, destinationMesssageID:long)
 
-	public Schema outputSchema(Schema input) {
+	public Schema outputSchema(Schema input) throws RuntimeException{
 
 		List<Schema.FieldSchema> listTupleFields = new ArrayList<Schema.FieldSchema>();
 
-		Schema.FieldSchema userID = new Schema.FieldSchema("userID",DataType.INTEGER);
+		Schema.FieldSchema userID = new Schema.FieldSchema("userID",DataType.LONG);
 		listTupleFields.add(userID);
 		Schema.FieldSchema sourceGPSBlock = new Schema.FieldSchema("sourceGPSBlock",DataType.CHARARRAY);
 		listTupleFields.add(sourceGPSBlock);
 		Schema.FieldSchema destinationGPSBlock = new Schema.FieldSchema("destinationGPSBlock",DataType.CHARARRAY);
 		listTupleFields.add(destinationGPSBlock);
-		Schema.FieldSchema sourceCount = new Schema.FieldSchema("sourceCount",DataType.INTEGER);
-		listTupleFields.add(sourceCount);
-		Schema.FieldSchema destinationCount = new Schema.FieldSchema("destinationCount",DataType.INTEGER);
-		listTupleFields.add(destinationCount);
+		Schema.FieldSchema sourceDate = new Schema.FieldSchema("sourceDate",DataType.CHARARRAY);
+		listTupleFields.add(sourceDate);
+		Schema.FieldSchema destinationDate = new Schema.FieldSchema("destinationDate",DataType.CHARARRAY);
+		listTupleFields.add(destinationDate);
+		Schema.FieldSchema sourceMesssageID = new Schema.FieldSchema("sourceMesssageID",DataType.LONG);
+		listTupleFields.add(sourceMesssageID);
+		Schema.FieldSchema destinationMesssageID = new Schema.FieldSchema("destinationMesssageID",DataType.LONG);
+		listTupleFields.add(destinationMesssageID);
 
 		Schema.FieldSchema tupleFs;
 		Schema.FieldSchema bagFs;
@@ -104,70 +87,103 @@ public class ConvertGPStoFlows extends EvalFunc<DataBag> {
 }
 
 class UserFlows {
-	private int userID;
-	
-	private int sourceCount;
-	private int destinationCount;
-	
-	private double sourceLatitude;
-	private double sourceLongitude;
-	
-	private double destinationLatitude;
-	private double destinationLongitude;
-	
-	private String sourceGPSBlock;
-	private String destinationGPSBlock;
+	BagFactory bagFactory;
+	DataBag outputBag;
 
-	public UserFlows(int userID) {
+	private long userID;
+	DataBag inputBag;
+	
+	public UserFlows(long userID, DataBag inputBag) {
+		bagFactory = BagFactory.getInstance();
+		outputBag = bagFactory.newDefaultBag();
+
 		this.userID = userID;
+		this.inputBag = inputBag;
 	}
 	
-	//input -> (userID:int, {(count:int, userID:int, gps_lat:double, gps_long:double, gpsBlock:chararray), (...)})
-	public void setSourceTuple(Tuple sourceTuple) throws IOException {
+//input -> (userID:long, {(count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray,gpsblock:chararray), (...)})
+	public boolean validateTuplePair(Tuple sourceTuple, Tuple destinationTuple) throws IOException {
+
+		String sourceGPSBlock;
+		String sourceDate;
+		long sourceMesssageID;
+
+		String destinationGPSBlock;
+		String destinationDate;
+		long destinationMesssageID;
+
 		try {
-			sourceCount = (int)sourceTuple.get(0);
-			sourceLatitude = (double)sourceTuple.get(2);
-			sourceLongitude = (double)sourceTuple.get(3);
-			sourceGPSBlock = (String)sourceTuple.get(4);
+			sourceGPSBlock = (String) sourceTuple.get(9);
+			sourceDate = (String) sourceTuple.get(4);
+			sourceMesssageID = (long) sourceTuple.get(3);
+			destinationGPSBlock = (String) destinationTuple.get(9);
+			destinationDate = (String) destinationTuple.get(4);
+			destinationMesssageID = (long) destinationTuple.get(3);
 		} catch (ExecException ee) {
 			throw ee;
 		}
-		
+
+		return !(sourceGPSBlock.equals(destinationGPSBlock));
 	}
 
-	public void setDestinationTuple(Tuple destinationTuple) throws IOException {
-		try {
-			destinationCount = (int)destinationTuple.get(0);
-			destinationLatitude = (double)destinationTuple.get(2);
-			destinationLongitude = (double)destinationTuple.get(3);
-			destinationGPSBlock = (String)destinationTuple.get(4);
-		} catch (ExecException ee) {
-			throw ee;
-		}
-	}
-
-
-	// output (one output tuple for each input tuple inside de bag) -> (userID:int, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceCount:int, destinationCount:int)
-	public Tuple getOutputTuple() {
+// output (one output tuple for each input tuple inside the bag) ->
+// (userID:long, sourceGPSBlock:chararray, destinationGPSBlock:chararray, sourceDate:chararray, destinationDate:chararray, sourceMesssageID:long, destinationMesssageID:long)
+	public void addTuplePairToOutputBag(Tuple sourceTuple, Tuple destinationTuple) throws IOException{
 		TupleFactory mTupleFactory = TupleFactory.getInstance();
 		Tuple outputTuple = mTupleFactory.newTuple();
-		if(!sourceGPSBlock.equals(destinationGPSBlock)) {
-			outputTuple.append(userID);
-			outputTuple.append(sourceGPSBlock);
-			outputTuple.append(destinationGPSBlock);
-			outputTuple.append(sourceCount);
-			outputTuple.append(destinationCount);
-			return outputTuple;
+
+		String sourceGPSBlock;
+		String sourceDate;
+		long sourceMesssageID;
+		String destinationGPSBlock;
+		String destinationDate;
+		long destinationMesssageID;
+
+		try {
+			sourceGPSBlock = (String) sourceTuple.get(9);
+			sourceDate = (String) sourceTuple.get(4);
+			sourceMesssageID = (long) sourceTuple.get(3);
+			destinationGPSBlock = (String) destinationTuple.get(9);
+			destinationDate = (String) destinationTuple.get(4);
+			destinationMesssageID = (long) destinationTuple.get(3);
+		} catch (ExecException ee) {
+			throw ee;
 		}
-		else //to avoid counting flows inside the same block
-			return null;
+
+		outputTuple.append(userID);
+		outputTuple.append(sourceGPSBlock);
+		outputTuple.append(destinationGPSBlock);
+		outputTuple.append(sourceDate);
+		outputTuple.append(destinationDate);
+		outputTuple.append(sourceMesssageID);
+		outputTuple.append(destinationMesssageID);
+		
+		outputBag.add(outputTuple);
 	}
 
-	// FOR TESTING PURPOSES ONLY
-	public String getOutputString() {
-		String outputString = String.format("userID:%d, sourceGPSBlock:%s, destinationGPSBlock:%s, sourceCount:%d, destinationCount:%d%n",
-			userID,sourceGPSBlock,destinationGPSBlock,sourceCount,destinationCount);
+	public DataBag getOutputDataBag() throws IOException{
+		Tuple source;
+		Tuple destination;
+			
+		Iterator it;
+		long inputBagSize;
 		
-		return outputString;
+		it = inputBag.iterator();
+		inputBagSize = inputBag.size();
+		source = (Tuple)it.next();
+
+		for (long i = 1; i < inputBagSize; i++) {
+			destination = (Tuple)it.next();
+			try {
+				if (validateTuplePair(source,destination)) //check if flow is valid 
+					addTuplePairToOutputBag(source,destination); //if so add it to the bag
+			} catch (ExecException ee) {
+				throw ee;
+			}
+			
+			source = destination;
+		}
+
+		return outputBag;
 	}
 }
