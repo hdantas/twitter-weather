@@ -13,9 +13,9 @@ TODO List
 		//2f - review all work done so far and ensure workingness with some sample data
 		//2g - make diagram of the code structure in paper and dia. For report and to help with the next steps.
 		//2g - understand the distribution of tweets per grid with actual data
-		2h - understand the flows per grid with actual data
+		//2h - understand the flows per grid with actual data 
 		2i - from the previous step determine what filters should be used to exclude "false" movements
-		2j - display data in Google Earth/Maps
+		2j - display data (flows, grids, tweets) in Google Earth/Maps
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26,3 +26,11 @@ TODO List
 	4 + find result
 		4a - most influence on travel (source, destination or delta)
 		4b - weather conditions influence
+
+
+
+
+Identify/compute distance traveled on a rainy day
+Identify/compute distance traveled on a sunny or not rainy day
+This difference or ratio is mobility, meaning it can be defined as mobility
+Keep original/ raw data set, just in case we need to change final approach		
