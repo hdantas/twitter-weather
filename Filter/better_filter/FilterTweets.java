@@ -8,8 +8,6 @@ class FilterTweets
 
 // valid tweet:
 //count \t userID \t userName \t messageID \ Date \t latitude \t longitude \t source \t tweet \n
-
-
 	private void writeToFile(String filename, String linetowrite) {
       try{
 		// Create file 
@@ -49,6 +47,10 @@ class FilterTweets
 	private void cleanTweet(String tweet){
 
 
+	}
+	
+	private void cleanTweet(String tweet){
+		
 	}
 }
 
