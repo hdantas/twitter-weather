@@ -1,74 +1,77 @@
 import java.io.*;
-public class WriteGridtoFile
-{
+public class WriteGridtoFile{
+
 	static double x_min = 0; //long_min
 	static double x_max = 0; //long_max
 	static double y_min = 0; //lat_min
 	static double y_max = 0; //lat_max
-   
-   public static void main(String args[])
-	{
+
+	public static void main(String args[]){
+		if (args.length != 2){
+			System.err.println("Error! Please use format \"java WriteGridtoFile <code length> <outputfile>\"");
+			return;
+		}
+
 		double lat_min,lat_max,long_min,long_max;
 		lat_min = 50.0;
 		lat_max = 55.0;
 		long_min = 3.0;
 		long_max = 8.0;
-		String result = computeCodes(lat_min,lat_max,long_min,long_max);
-		writetofile(result);
-		return;
+		writetofile(args[1],computeCodes(Integer.valueOf(args[0]),lat_min,lat_max,long_min,long_max));
 	}
-	static void writetofile(String towrite)
-	{
+
+	static void writetofile(String filename, String towrite){
 		try{
-		// Create file 
-		FileWriter fstream = new FileWriter("out.txt");
-		BufferedWriter out = new BufferedWriter(fstream);
-		out.write(towrite);
-		
-		//Close the output stream
-		out.close();
-		}catch (Exception e){//Catch exception if any
+			// Create file 
+			FileWriter fstream = new FileWriter(filename);
+			BufferedWriter out = new BufferedWriter(fstream);
+			out.write(towrite);
+			
+			//Close the output stream
+			out.close();
+		}catch (Exception e){ //Catch exception if any
 			System.err.println("Error: " + e.getMessage());
 		}
 	}
 	
-	static String computeCodes(double lat_min, double lat_max, double long_min, double long_max){
-		int code = 65; // 65 = 'A'
-		String out = "";
+	static String computeCodes(int depth, double lat_min, double lat_max, double long_min, double long_max){
 		double[] y_min_parent, y_max_parent, x_min_parent, x_max_parent;
-		y_min_parent = new double[3];
-		y_max_parent = new double[3];
-		x_min_parent = new double[3];
-		x_max_parent = new double[3];
+		y_min_parent = new double[20];
+		y_max_parent = new double[20];
+		x_min_parent = new double[20];
+		x_max_parent = new double[20];
+
+		y_min_parent[0] = lat_min;
+		y_max_parent[0] = lat_max;
+		x_min_parent[0] = long_min;
+		x_max_parent[0] = long_max;
 		
-		for(char a='A';a<='D';a++){
-			out += Character.toString(a)+'\t'+computeCoordinates(a,lat_min,lat_max,long_min,long_max)+'\n';
-			y_min_parent[0] = y_min;
-			y_max_parent[0] = y_max;
-			x_min_parent[0] = x_min;
-			x_max_parent[0] = x_max;			
-			for(char b='A';b<='D';b++){
-				out += Character.toString(a)+Character.toString(b)+'\t'+computeCoordinates(b,y_min_parent[0],y_max_parent[0],x_min_parent[0],x_max_parent[0])+'\n';
-				y_min_parent[1] = y_min;
-				y_max_parent[1] = y_max;
-				x_min_parent[1] = x_min;
-				x_max_parent[1] = x_max;
-				for(char c='A';c<='D';c++){
-					out += Character.toString(a)+Character.toString(b)+Character.toString(c)+'\t'+computeCoordinates(c,y_min_parent[1],y_max_parent[1],x_min_parent[1],x_max_parent[1])+'\n';
-					y_min_parent[2] = y_min;
-					y_max_parent[2] = y_max;
-					x_min_parent[2] = x_min;
-					x_max_parent[2] = x_max;
-					for(char d='A';d<='D';d++){
-						out += Character.toString(a)+Character.toString(b)+Character.toString(c)+Character.toString(d)+'\t'+computeCoordinates(d,y_min_parent[2],y_max_parent[2],x_min_parent[2],x_max_parent[2])+'\n';
-					}
-				}
-			}
-		}
-		return out;
+		// recursive(depth,j,out,code,y_min_parent,y_max_parent,x_min_parent,x_max_parent);
+		return recursive(depth,0,"",y_min_parent,y_max_parent,x_min_parent,x_max_parent);
 	}
 	
-	static String computeCoordinates(char code, double lat_min, double lat_max, double long_min, double long_max) {
+	static String recursive(int depth, int j, String parentCode, double[] y_min_parent, double[] y_max_parent, double[] x_min_parent, double[] x_max_parent){
+		String code = "";
+		String out = "";
+
+		for(char i='A'; i <='D'; i++){
+			code = parentCode + String.valueOf(i); //append new code to the parent's
+			out += code+'\t'+computeCoordinates(i,y_min_parent[j],y_max_parent[j],x_min_parent[j],x_max_parent[j])+'\n'; //add the limit coordinates
+			y_min_parent[j+1] = y_min;
+			y_max_parent[j+1] = y_max;
+			x_min_parent[j+1] = x_min;
+			x_max_parent[j+1] = x_max;
+			
+			if(j < (depth - 1)){ //block code still 'needs to grow'
+				out += recursive(depth,j+1,code,y_min_parent,y_max_parent,x_min_parent,x_max_parent);
+			}
+		}
+
+		j = 0;
+		return out;
+	}
+
+	static String computeCoordinates(char code, double lat_min, double lat_max, double long_min, double long_max){
 		String out = "";
 		double delta_lat = lat_max - lat_min;
 		double delta_long = long_max - long_min;
@@ -97,8 +100,6 @@ public class WriteGridtoFile
 			out = "ERROR! code:" + code; 
 			return out;
 		}
-		
 		return out.format("%f\t%f\t%f\t%f",y_min,y_max,x_min,x_max);
 	}
 }
-
