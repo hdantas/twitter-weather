@@ -41,5 +41,11 @@ Keep original/ raw data set, just in case we need to change final approach
 
 find a list of popular routes (A1, A2, ...) based on the total dataset
 compute the avg number of users per day
+
 for those flows compute the popularity per day (and compare (ratio) it with the average over the whole dataset)
+
 get the weather for each flow, for each weekday
+
+17-21
+24-28
+31-04

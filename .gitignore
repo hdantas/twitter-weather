@@ -2,7 +2,5 @@
 *.log
 *.class
 *.crc
-tweets_big.txt
-dataen*
 results/
-data/ByDay/
+data/ByDay

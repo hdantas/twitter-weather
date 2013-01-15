@@ -15,22 +15,20 @@ DEFINE AssignGPSBlock (notdone_tweets) RETURNS incomplete_tweets, complete_tweet
 	};
 
 	
-	incomplete = FILTER grids BY (count_users > 100); -- '1' should be replaced by the threshold
+	incomplete = FILTER grids BY (count_users > 1000); -- '1' should be replaced by the threshold
 	$incomplete_tweets = FOREACH incomplete GENERATE FLATTEN(tweets);
 	
-	complete = FILTER grids BY (count_users <= 100); -- '1' should be replaced by the threshold
+	complete = FILTER grids BY (count_users <= 1000); -- '1' should be replaced by the threshold
 	$complete_tweets = FOREACH complete GENERATE FLATTEN(tweets);
 };
 
 
 -- Loads
-file = LOAD '../data/complete.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray);
-
-clean_file = FILTER file BY (gps_lat != -1000.0) AND (gps_long != -1000.0);
+file = LOAD '../data/AllTweets.txt' USING PigStorage('\t') AS (count:long,userID:long,userName:chararray,messageID:long,date:chararray,gps_lat:double,gps_long:double,source:chararray,tweet:chararray);
 
 -- Processing
 
-firstrun = FOREACH clean_file GENERATE *, '' AS block;
+firstrun = FOREACH file GENERATE *, '' AS block;
 notdone0,done0 = AssignGPSBlock(firstrun);
 STORE done0 INTO '$output_dir/0';
 
@@ -79,19 +77,21 @@ STORE done14 INTO '$output_dir/14';
 notdone15,done15 = AssignGPSBlock(notdone14);
 STORE done15 INTO '$output_dir/15';
 
-notdone16,done16 = AssignGPSBlock(notdone15);
-STORE done16 INTO '$output_dir/16';
-
-notdone17,done17 = AssignGPSBlock(notdone16);
-STORE done17 INTO '$output_dir/17';
-
-notdone18,done18 = AssignGPSBlock(notdone17);
-STORE done18 INTO '$output_dir/18';
-
-notdone19,done19 = AssignGPSBlock(notdone18);
-STORE done19 INTO '$output_dir/19';
-
-notdone20,done20 = AssignGPSBlock(notdone19);
-STORE done20 INTO '$output_dir/20';
-
-STORE notdone20 INTO '$output_dir/21';
+STORE notdone15 INTO '$output_dir/16';
+--
+--notdone16,done16 = AssignGPSBlock(notdone15);
+--STORE done16 INTO '$output_dir/16';
+--
+--notdone17,done17 = AssignGPSBlock(notdone16);
+--STORE done17 INTO '$output_dir/17';
+--
+--notdone18,done18 = AssignGPSBlock(notdone17);
+--STORE done18 INTO '$output_dir/18';
+--
+--notdone19,done19 = AssignGPSBlock(notdone18);
+--STORE done19 INTO '$output_dir/19';
+--
+--notdone20,done20 = AssignGPSBlock(notdone19);
+--STORE done20 INTO '$output_dir/20';
+--
+--STORE notdone20 INTO '$output_dir/21';
