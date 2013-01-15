@@ -34,3 +34,12 @@ Identify/compute distance traveled on a rainy day
 Identify/compute distance traveled on a sunny or not rainy day
 This difference or ratio is mobility, meaning it can be defined as mobility
 Keep original/ raw data set, just in case we need to change final approach		
+
+
+20 routes
+15 weekdays
+
+find a list of popular routes (A1, A2, ...) based on the total dataset
+compute the avg number of users per day
+for those flows compute the popularity per day (and compare (ratio) it with the average over the whole dataset)
+get the weather for each flow, for each weekday
