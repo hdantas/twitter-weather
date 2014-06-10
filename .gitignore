@@ -3,4 +3,6 @@
 *.class
 *.crc
 results/
-data/ByDay
+data/
+*.DS_Store
+references/
